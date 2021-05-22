@@ -1,23 +1,41 @@
 <template>
-  <div class="home">
-    <b-container>
-      <h1>Student Management</h1>
+  <b-container>
+    <h1 class="text-center">Student Management</h1>
 
-      <b-table :busy.sync="isBusy" :items="userProvider" :fields="fields">
-        <template #cell(index)="data">
-          {{ data.index + 1 }}
-        </template>
+    <b-table
+      id="table-users"
+      class="mt-4"
+      :striped="true"
+      :hover="true"
+      :bordered="true"
+      :busy.sync="isBusy"
+      :items="userProvider"
+      :fields="fields"
+      :current-page="currentPage"
+      :per-page="perPage"
+      :sort-by.sync="sortBy"
+      :sort-desc.sync="sortDesc"
+    >
+      <template #cell(index)="data">
+        {{ data.index + 1 }}
+      </template>
 
-        <template #cell(avatar)="data">
-          <img :src="data.value" />
-        </template>
-      </b-table>
-    </b-container>
-  </div>
+      <template #cell(avatar)="data">
+        <img :src="data.value" />
+      </template>
+    </b-table>
+
+    <b-pagination
+      v-model="currentPage"
+      :total-rows="totalRows"
+      :per-page="perPage"
+      aria-controls="table-users"
+      align="center"
+    ></b-pagination>
+  </b-container>
 </template>
 
 <script>
-// @ is an alias to /src
 // import TableUserList from "@/components/TableUserList.vue";
 import axios from "axios";
 
@@ -26,6 +44,11 @@ export default {
   components: {},
   data() {
     return {
+      currentPage: 1,
+      perPage: 3,
+      totalRows: 0,
+      sortBy: "firstName",
+      sortDesc: false,
       fields: [
         "index",
         "avatar",
@@ -46,11 +69,16 @@ export default {
     };
   },
   methods: {
-    userProvider() {
-      let promise = axios.get("http://localhost:3000/users");
+    async userProvider() {
+      let promise = axios.get(
+        `http://localhost:3000/users?_page=${this.currentPage}&_limit=${
+          this.perPage
+        }&_sort=${this.sortBy}&_order=${this.sortDesc ? "desc" : "asc"}`
+      );
 
       return promise
         .then((res) => {
+          this.totalRows = res.headers["x-total-count"];
           return res.data;
         })
         .catch((error) => {
@@ -61,3 +89,9 @@ export default {
   },
 };
 </script>
+
+<style>
+.sr-only {
+  display: none;
+}
+</style>
