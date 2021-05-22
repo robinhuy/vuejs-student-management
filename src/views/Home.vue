@@ -2,6 +2,20 @@
   <b-container>
     <h1 class="text-center">Student Management</h1>
 
+    <div class="d-flex justify-content-end align-items-center mt-5">
+      <label for="search">Search</label>
+
+      <b-form-input
+        id="search"
+        class="ms-2"
+        style="max-width: 350px"
+        v-model="searchKeyword"
+        type="search"
+        placeholder="Type to Search"
+        debounce="500"
+      ></b-form-input>
+    </div>
+
     <b-table
       id="table-users"
       class="mt-4"
@@ -15,6 +29,7 @@
       :per-page="perPage"
       :sort-by.sync="sortBy"
       :sort-desc.sync="sortDesc"
+      :filter="searchKeyword"
     >
       <template #cell(index)="data">
         {{ data.index + 1 }}
@@ -36,12 +51,10 @@
 </template>
 
 <script>
-// import TableUserList from "@/components/TableUserList.vue";
 import axios from "axios";
 
 export default {
   name: "Home",
-  components: {},
   data() {
     return {
       currentPage: 1,
@@ -49,6 +62,7 @@ export default {
       totalRows: 0,
       sortBy: "firstName",
       sortDesc: false,
+      searchKeyword: "",
       fields: [
         "index",
         "avatar",
@@ -70,10 +84,13 @@ export default {
   },
   methods: {
     async userProvider() {
+      console.log("fetch", this.searchKeyword);
       let promise = axios.get(
         `http://localhost:3000/users?_page=${this.currentPage}&_limit=${
           this.perPage
-        }&_sort=${this.sortBy}&_order=${this.sortDesc ? "desc" : "asc"}`
+        }&_sort=${this.sortBy}&_order=${this.sortDesc ? "desc" : "asc"}&q=${
+          this.searchKeyword
+        }`
       );
 
       return promise
@@ -91,6 +108,9 @@ export default {
 </script>
 
 <style>
+tr > td {
+  vertical-align: middle;
+}
 .sr-only {
   display: none;
 }
